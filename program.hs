@@ -275,6 +275,47 @@ mostrarAsignarBicicletas = do
         consultarBicisParqueo nombreParqueo
     menuOperativas
 {-
+Entradas: La lista con la información de un usuario
+Salidas: imprime la información de cada usuario
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de un usuario
+-}
+imprimirInfoUsuario :: [String] -> IO ()
+imprimirInfoUsuario [cedula, nombre] = do
+  putStrLn "\n"
+  putStrLn $ "Cedula: " ++ cedula
+  putStrLn $ "Nombre: " ++ nombre
+imprimirInfoUsuario _ = putStrLn "La lista no tiene el formato esperado."
+{-
+Entradas: La lista con todos los usuarios del sistema
+Salidas: Toma cada usuario y envía su información a la funcion imprimirInfoUsuario para que imprima la información del usuario con el formato deseado
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de todos los usuarios
+-}
+imprimirListaUsuarios :: [[String]] -> IO ()
+imprimirListaUsuarios listaUsuarios = mapM_ imprimirInfoUsuario listaUsuarios
+{-
+Entradas: La ruta de la información de los usuarios
+Salidas: Carga la información de los usuarios y los muestra en pantalla
+Restricciones: Debe ser una ruta válida
+Objetivo: Mostrar la información de los usuarios del sistema
+-}
+cargarUsuarios :: IO ()
+cargarUsuarios = do
+    putStrLn "\n"
+    putStrLn "******Cargar Usuarios******"
+    ruta <- pedirRuta
+    archivoExiste <- doesFileExist ruta
+    if archivoExiste
+        then do
+            contenido <- obtenerContenido ruta
+            contenidoParseado <- return (parsearDocumento contenido)
+            imprimirListaUsuarios contenidoParseado
+            menuOperativas
+        else do
+            putStrLn "La ruta ingresada no corresponde a un archivo válido."
+            cargarUsuarios
+{-
 Entradas: Un caracter que representa la selección hecha por el usuario
 Salidas: Dependiendo de la selección del usuario el sistema desplegará una funcionalidad u otra
 Restricciones: El usuario debe seleccionar una opción válida
@@ -298,7 +339,7 @@ menuOperativas = do
         "2" -> cargarParqueos
         "3" -> verBicisSistema
         "4" -> mostrarAsignarBicicletas
-        "5" -> putStrLn "Has seleccionado Cargar Usuarios"
+        "5" -> cargarUsuarios
         "6" -> putStrLn "Has seleccionado Estadísticas"
         "7" -> menuPrincipal
         _ -> do
