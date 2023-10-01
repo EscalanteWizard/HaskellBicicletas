@@ -133,6 +133,21 @@ Objetivo: Imprimir la información de todas las bicicletas del sistema
 imprimirListaBicicletas :: [[String]] -> IO ()  --Bicicletas y el tipo de torque
 imprimirListaBicicletas bicicletas = mapM_ imprimirInfoBicicletas bicicletas
 {-
+Entradas: La ruta de todas las bicicletas del sistema
+Salidas: Imprime la información de todas las bicicletas del sistema
+Restricciones: n\a
+Objetivo: Imprimir la información de todas las bicicletas del sistema
+-}
+verBicisSistema :: IO ()  --Bicicletas y el tipo de torque
+verBicisSistema = do
+    putStrLn "\n"
+    putStrLn "****** Mostrando Bicicletas del sistema******"
+    let ruta = "bicicletas.txt"
+    contenido <- obtenerContenido ruta
+    contenidoParseado <- return (parsearDocumento contenido)
+    imprimirListaBicicletas contenidoParseado
+    menuOperativas
+{-
 Entradas: La lista con la información de una ubicación de bicicletas
 Salidas: imprime la información de cada ubicación de bicicleta
 Restricciones: La lista recibida debe tener el formato adecuado
@@ -271,19 +286,21 @@ menuOperativas = do
     putStrLn "******Menú de Opciones Operativas******"
     putStrLn "1. Información Comercial"
     putStrLn "2. Cargar y Mostrar Parqueos"
-    putStrLn "3. Mostrar y Asignar Bicicletas"
-    putStrLn "4. Cargar Usuarios"
-    putStrLn "5. Estadísticas"
-    putStrLn "6. Volver (Volver al Menú Principal)"
+    putStrLn "3. Ver bicicletas del sistema"
+    putStrLn "4. Mostrar y Asignar Bicicletas"
+    putStrLn "5. Cargar Usuarios"
+    putStrLn "6. Estadísticas"
+    putStrLn "7. Volver (Volver al Menú Principal)"
     putStrLn "Ingrese el número de la opción deseada:"
     opcion <- getLine
     case opcion of
         "1" -> infoComercial               
         "2" -> cargarParqueos
-        "3" -> mostrarAsignarBicicletas
-        "4" -> putStrLn "Has seleccionado Cargar Usuarios"
-        "5" -> putStrLn "Has seleccionado Estadísticas"
-        "6" -> menuPrincipal
+        "3" -> verBicisSistema
+        "4" -> mostrarAsignarBicicletas
+        "5" -> putStrLn "Has seleccionado Cargar Usuarios"
+        "6" -> putStrLn "Has seleccionado Estadísticas"
+        "7" -> menuPrincipal
         _ -> do
             putStrLn "Opción inválida. Por favor, ingrese un número válido."
             menuOperativas
