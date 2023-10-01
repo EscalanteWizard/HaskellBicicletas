@@ -1,3 +1,71 @@
+--Librerías utilizadas
+import System.IO
+import Data.List.Split (splitOn)
+{-
+Entradas: un string
+Salidas: El string recibido parseado en las comas
+Restricciones: el string debe contener comas
+Objetivo: Parsear una cadena de texto en sus comas
+-}
+parsearLinea :: String -> [String]
+parsearLinea linea = splitOn "," linea
+{-
+Entradas: El contenido de un documento de texto
+Salidas: El contenido del documento convertido en una lista, donde cada posicion de la lista es un renglón del documento cuyo texto fue ingresado
+Restricciones: El documento debe contener varios renglones para que tenga sentido aplicar la función
+Objetivo: Parsear un documento en sus renglones
+-}
+parsearDocumento :: String -> [[String]]
+parsearDocumento contenido = map (splitOn ",") (lines contenido)
+{-
+Entradas: La ruta de un documento de texto
+Salidas: Devuelve la ruta ingresada por el usuario como una variable
+Restricciones: Debe ser una ruta válida
+Objetivo: Obtener la ruta de un documento de texto
+-}
+pedirRuta :: IO String
+pedirRuta = do
+    putStrLn "Ingresa la ruta del archivo:"
+    getLine
+{-
+Entradas: La ruta de un documento de texto
+Salidas: Devuelve el contenido del archivo en la ruta ingresada por el usuario
+Restricciones: Debe ser una ruta válida
+Objetivo: Obtener el contenido del documento de texto indicado
+-}
+obtenerContenido :: String -> IO String
+obtenerContenido ruta = do
+    contenido <- readFile ruta
+    return contenido
+{-
+Entradas: La lista con la información del comercio
+Salidas: imprime la información de la empresa de bicicletas
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de la empresa de bicicletas
+-}
+imprimirInfoComercial :: [String] -> IO ()
+imprimirInfoComercial [nombre, web, main, tarifaPedal, tarifaElectrica, tarifaGasolina] = do
+  putStrLn $ "Nombre: " ++ nombre
+  putStrLn $ "Web: " ++ web
+  putStrLn $ "Main: " ++ main
+  putStrLn $ "Tarifa Pedal: " ++ tarifaPedal
+  putStrLn $ "Tarifa Electrica: " ++ tarifaElectrica
+  putStrLn $ "Tarifa Gasolina: " ++ tarifaGasolina
+imprimirInfoComercial _ = putStrLn "La lista no tiene el formato esperado."
+{-
+Entradas: La ruta de la información de la empresa de bicicletas
+Salidas: Imprime en pantalla la información del comercio
+Restricciones: Debe ser una ruta válida
+Objetivo: Mostrar la información de la empresa de bicicletas
+-}
+infoComercial :: IO ()
+infoComercial = do
+    putStrLn "****Información de la empresa******"
+    let ruta = "infoEmpresa.txt"
+    contenido <- readFile ruta
+    contenidoParseado <- return (parsearLinea contenido)
+    imprimirInfoComercial contenidoParseado
+    menuOperativas
 {-
 Entradas: Un caracter que representa la selección hecha por el usuario
 Salidas: Dependiendo de la selección del usuario el sistema desplegará una funcionalidad u otra
@@ -16,7 +84,7 @@ menuOperativas = do
     putStrLn "Ingrese el número de la opción deseada:"
     opcion <- getLine
     case opcion of
-        "1" -> putStrLn "Has seleccionado Información Comercial"
+        "1" -> infoComercial               
         "2" -> putStrLn "Has seleccionado Cargar y Mostrar Parqueos"
         "3" -> putStrLn "Has seleccionado Mostrar y Asignar Bicicletas"
         "4" -> putStrLn "Has seleccionado Cargar Usuarios"
