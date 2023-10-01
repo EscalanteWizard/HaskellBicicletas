@@ -119,7 +119,7 @@ Restricciones: La lista recibida debe tener el formato adecuado
 Objetivo: Imprimir la información de una bicicleta
 -}
 imprimirInfoBicicletas :: [String] -> IO ()
-imprimirInfoBicicletas [codigo, tipo] = do
+imprimirInfoBicicletas [codigo, tipo] = do  --Bicicletas y el tipo de torque
   putStrLn "\n"
   putStrLn $ "Codigo: " ++ codigo
   putStrLn $ "Tipo: " ++ tipo
@@ -130,7 +130,7 @@ Salidas: Pasa la lista de todas las bicicletas a una función para imprimir cada
 Restricciones: La lista recibida debe tener el formato adecuado
 Objetivo: Imprimir la información de todas las bicicletas del sistema
 -}
-imprimirListaBicicletas :: [[String]] -> IO ()
+imprimirListaBicicletas :: [[String]] -> IO ()  --Bicicletas y el tipo de torque
 imprimirListaBicicletas bicicletas = mapM_ imprimirInfoBicicletas bicicletas
 {-
 Entradas: La lista con la información de una ubicación de bicicletas
@@ -138,7 +138,7 @@ Salidas: imprime la información de cada ubicación de bicicleta
 Restricciones: La lista recibida debe tener el formato adecuado
 Objetivo: Imprimir la información de una ubicación de bicicleta
 -}
-imprimirInfoUbicacion :: [String] -> IO ()
+imprimirInfoUbicacion :: [String] -> IO ()  --Bicicletas y su ubicacion
 imprimirInfoUbicacion [codigoBicicleta, ubicacion] = do
   putStrLn "\n"
   putStrLn $ "Codigo Bicicleta: " ++ codigoBicicleta
@@ -150,7 +150,7 @@ Salidas: Pasa la lista de todas las ubicaciones de bicicletas a una función par
 Restricciones: La lista recibida debe tener el formato adecuado
 Objetivo: Imprimir la información de todas las ubicaciones de bicicletas
 -}
-imprimirListaUbicaciones :: [[String]] -> IO ()
+imprimirListaUbicaciones :: [[String]] -> IO ()   --Bicicletas y su ubicacion
 imprimirListaUbicaciones ubicaciones = mapM_ imprimirInfoUbicacion ubicaciones
 {-
 Entradas: La ruta de la información de todas las bicicletas del sistema
@@ -158,7 +158,7 @@ Salidas: Muestra en pantalla la información de todas las bicicletas del sistema
 Restricciones: El archivo de bicicletas debe existir en el directorio
 Objetivo: Mostrar la información de todas las bicicletas del sistema
 -}
-imprimirUbicacionesBicicletas :: IO ()
+imprimirUbicacionesBicicletas :: IO ()   --Bicicletas y su ubicacion
 imprimirUbicacionesBicicletas = do
     putStrLn "\n"
     putStrLn "****** Mostrando Bicicletas y ubicacion******"
@@ -189,6 +189,28 @@ imprimirBicicletasTransito = do
     let contenidoParseado = parsearDocumento contenido
     let bicicletasEnTransito = filtrarPorTransito contenidoParseado
     imprimirListaUbicaciones bicicletasEnTransito
+{-
+Entradas: La lista de todos los parqueos del sistema y el nombre de un parque a buscar
+Salidas: Retorna el parqueo cuyo nombre calza con el nombre de parqueo indicado
+Restricciones: La lista recibida no debe estar vacía
+Objetivo: Obtener el parqueo con el nombre indicado
+-}
+buscarParqueoPorNombre :: String -> [[String]] -> [String]
+buscarParqueoPorNombre _ [] = []
+buscarParqueoPorNombre nombreParqueo (parqueo:restoParqueos)
+    | nombreParqueo == parqueo !! 1 = parqueo
+    | otherwise = buscarParqueoPorNombre nombreParqueo restoParqueos
+{-
+Entradas: El codigo de un parqueo y La lista de todas las ubicaciones del sistema
+Salidas: La lista de todas las ubicaciones del sistema que tengan como codigo del parqueo (segunda posicion de cada ubicacion) el codigo del parqueo indicado
+Restricciones: El codigo de parqueo debe ser de un parqueo válido y La lista recibida no debe estar vacía
+Objetivo: Obtener todas las ubicaciones de bicicleta que tengan en su ubicacion el codigo del parqueo indicado
+-}
+filtrarUbicacionesPorCodigoParqueo :: String -> [[String]] -> [[String]]
+filtrarUbicacionesPorCodigoParqueo _ [] = []
+filtrarUbicacionesPorCodigoParqueo codigoParqueo (ubicacion:restoUbicaciones)
+    | codigoParqueo == ubicacion !! 1 = ubicacion : filtrarUbicacionesPorCodigoParqueo codigoParqueo restoUbicaciones
+    | otherwise = filtrarUbicacionesPorCodigoParqueo codigoParqueo restoUbicaciones
 
 {-
 Entradas: El nombre del parqueo del que se deben consultar las bicicletas
@@ -196,10 +218,25 @@ Salidas: Muestra todas las bicicletas del parque indicado
 Restricciones: Debe existir un parqueo con el nombre indicado
 Objetivo: Mostrar la información de todas las bicicletas en el parque indicado
 -}
-consultarBicisParqueo :: IO ()
-consultarBicisParqueo = do
+consultarBicisParqueo :: String -> IO ()
+consultarBicisParqueo nombreParqueo = do
     putStrLn "\n"
     putStrLn "****** Mostrando Bicicletas En parqueo******"
+    let rutaParqueos = "parqueos.txt"
+    contenidoParqueos <- obtenerContenido rutaParqueos  --leer el documento con los parqueos
+    let listaParqueos = parsearDocumento contenidoParqueos --convertir el contenido en una lista de parqueos
+    let parqueoEncontrado = buscarParqueoPorNombre nombreParqueo listaParqueos
+    if null parqueoEncontrado
+        then do
+            putStrLn "No se encontró ningún parqueo con ese nombre"
+            mostrarAsignarBicicletas
+        else do
+            let rutaUbicaciones = "ubicacionesBicicletas.txt"
+            contenidoUbicaciones <- obtenerContenido rutaUbicaciones --leer el documento de ubicaciones
+            let listaUbicaciones = parsearDocumento contenidoUbicaciones  --convertir el documento de ubicaciones en una lista de ubicaciones
+            let codigoParqueo = parqueoEncontrado !! 0  --obtenemos el codigo del parqueo
+            let listaUbicacionesDeEseParqueo = filtrarUbicacionesPorCodigoParqueo codigoParqueo listaUbicaciones
+            imprimirListaUbicaciones listaUbicacionesDeEseParqueo
 {-
 Entradas: El usuario indica un nombre de parqueo
 Salidas: Dependiendo del nombre del usuario:
@@ -220,7 +257,7 @@ mostrarAsignarBicicletas = do
     else if nombreParqueo == "transito"
         then imprimirBicicletasTransito
     else
-        consultarBicisParqueo
+        consultarBicisParqueo nombreParqueo
     menuOperativas
 {-
 Entradas: Un caracter que representa la selección hecha por el usuario
