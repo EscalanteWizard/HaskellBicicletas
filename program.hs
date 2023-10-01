@@ -1,6 +1,7 @@
 --Librerías utilizadas
 import System.IO
 import Data.List.Split (splitOn)
+import System.Directory (doesFileExist)
 {-
 Entradas: un string
 Salidas: El string recibido parseado en las comas
@@ -60,12 +61,57 @@ Objetivo: Mostrar la información de la empresa de bicicletas
 -}
 infoComercial :: IO ()
 infoComercial = do
-    putStrLn "****Información de la empresa******"
+    putStrLn "******Información de la empresa******"
     let ruta = "infoEmpresa.txt"
     contenido <- readFile ruta
     contenidoParseado <- return (parsearLinea contenido)
     imprimirInfoComercial contenidoParseado
     menuOperativas
+{-
+Entradas: La lista con la información de un parqueo de bicicletas
+Salidas: imprime la información de cada parqueo de bicicletas
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de un parqueo de bicicletas
+-}
+imprimirInfoParqueo :: [String] -> IO ()
+imprimirInfoParqueo [codigo, nombre, ubicacion, provincia, x, y] = do
+  putStrLn "\n"
+  putStrLn $ "Codigo: " ++ codigo
+  putStrLn $ "Nombre: " ++ nombre
+  putStrLn $ "Ubicacion: " ++ ubicacion
+  putStrLn $ "Provincia: " ++ provincia
+  putStrLn $ "Latitud: " ++ x
+  putStrLn $ "Longitud: " ++ y
+imprimirInfoParqueo _ = putStrLn "La lista no tiene el formato esperado."
+{-
+Entradas: La lista con la información de todos los parqueos de bicicletas
+Salidas: Imprime la información de cada uno de los parqueos de bibicletas
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de todos los parques de la lista de bicicletas
+-}
+imprimirInfoParqueos :: [[String]] -> IO ()
+imprimirInfoParqueos parqueos = mapM_ imprimirInfoParqueo parqueos
+{-
+Entradas: La ruta de la información de los parqueos de bicicletas
+Salidas: Carga la información de los parqueos desde un archivo txt e imprime la información de los parqueos en pantalla
+Restricciones: Debe ser una ruta válida
+Objetivo: Mostrar la información de los parqueos de bicicletas
+-}
+cargarParqueos :: IO ()
+cargarParqueos = do
+    putStrLn "\n"
+    putStrLn "******Cargar Parqueos******"
+    ruta <- pedirRuta
+    archivoExiste <- doesFileExist ruta
+    if archivoExiste
+        then do
+            contenido <- obtenerContenido ruta
+            contenidoParseado <- return (parsearDocumento contenido)
+            imprimirInfoParqueos contenidoParseado
+            menuOperativas
+        else do
+            putStrLn "La ruta ingresada no corresponde a un archivo válido."
+            cargarParqueos
 {-
 Entradas: Un caracter que representa la selección hecha por el usuario
 Salidas: Dependiendo de la selección del usuario el sistema desplegará una funcionalidad u otra
@@ -74,6 +120,7 @@ Objetivo: Desplegar el menú de opciones operativas para el usuario "administrad
 -}
 menuOperativas :: IO ()
 menuOperativas = do
+    putStrLn "\n"
     putStrLn "Menú de Opciones Operativas"
     putStrLn "1. Información Comercial"
     putStrLn "2. Cargar y Mostrar Parqueos"
@@ -85,7 +132,7 @@ menuOperativas = do
     opcion <- getLine
     case opcion of
         "1" -> infoComercial               
-        "2" -> putStrLn "Has seleccionado Cargar y Mostrar Parqueos"
+        "2" -> cargarParqueos
         "3" -> putStrLn "Has seleccionado Mostrar y Asignar Bicicletas"
         "4" -> putStrLn "Has seleccionado Cargar Usuarios"
         "5" -> putStrLn "Has seleccionado Estadísticas"
@@ -101,6 +148,7 @@ Objetivo: Desplegar el menú de opciones generales para el usuario general
 -}
 menuGenerales :: IO ()
 menuGenerales = do
+    putStrLn "\n"
     putStrLn "Menú de Opciones Generales"
     putStrLn "1. Consultar Bicicletas"
     putStrLn "2. Alquilar"
@@ -124,6 +172,7 @@ Objetivo: Desplegar el menú principal que se muestra en el programa
 -}
 menuPrincipal :: IO ()
 menuPrincipal = do
+    putStrLn "\n"
     putStrLn "Menú Principal"
     putStrLn "1. Opciones Operativas"
     putStrLn "2. Opciones Generales"
