@@ -84,13 +84,13 @@ imprimirInfoParqueo [codigo, nombre, ubicacion, provincia, x, y] = do
   putStrLn $ "Longitud: " ++ y
 imprimirInfoParqueo _ = putStrLn "La lista no tiene el formato esperado."
 {-
-Entradas: La lista con la información de todos los parqueos de bicicletas
-Salidas: Imprime la información de cada uno de los parqueos de bibicletas
+Entradas: La lista con todos los parqueos del sistema
+Salidas: Toma cada parqueo y envía su información a la funcion imprimirInfoParqueo para que imprima la información del parqueo con el formato deseado
 Restricciones: La lista recibida debe tener el formato adecuado
-Objetivo: Imprimir la información de todos los parques de la lista de bicicletas
+Objetivo: Imprimir la información de todos los parqueos
 -}
-imprimirInfoParqueos :: [[String]] -> IO ()
-imprimirInfoParqueos parqueos = mapM_ imprimirInfoParqueo parqueos
+imprimirListaParqueos :: [[String]] -> IO ()
+imprimirListaParqueos listaParqueos = mapM_ imprimirInfoParqueo listaParqueos
 {-
 Entradas: La ruta de la información de los parqueos de bicicletas
 Salidas: Carga la información de los parqueos desde un archivo txt e imprime la información de los parqueos en pantalla
@@ -107,11 +107,87 @@ cargarParqueos = do
         then do
             contenido <- obtenerContenido ruta
             contenidoParseado <- return (parsearDocumento contenido)
-            imprimirInfoParqueos contenidoParseado
+            imprimirListaParqueos contenidoParseado
             menuOperativas
         else do
             putStrLn "La ruta ingresada no corresponde a un archivo válido."
             cargarParqueos
+{-
+Entradas: La lista con la información de todas las bicicletas del sistema
+Salidas: imprime la información de cada bicicleta
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de una bicicleta
+-}
+imprimirInfoBicicletas :: [String] -> IO ()
+imprimirInfoBicicletas [codigo, tipo] = do
+  putStrLn "\n"
+  putStrLn $ "Codigo: " ++ codigo
+  putStrLn $ "Tipo: " ++ tipo
+imprimirInfoBicicletas _ = putStrLn "La lista de bicicletas no tiene el formato esperado."
+{-
+Entradas: La lista con la información de todas las bicicletas
+Salidas: Pasa la lista de todas las bicicletas a una función para imprimir cada bicicleta
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de todas las bicicletas del sistema
+-}
+imprimirListaBicicletas :: [[String]] -> IO ()
+imprimirListaBicicletas bicicletas = mapM_ imprimirInfoBicicletas bicicletas
+{-
+Entradas: La ruta de la información de todas las bicicletas del sistema
+Salidas: Muestra en pantalla la información de todas las bicicletas del sistema
+Restricciones: El archivo de bicicletas debe existir en el directorio
+Objetivo: Mostrar la información de todas las bicicletas del sistema
+-}
+imprimirBicicletas :: IO ()
+imprimirBicicletas = do
+    putStrLn "\n"
+    putStrLn "****** Mostrando Bicicletas y ubicacion******"
+    let ruta = "bicicletas.txt"
+    contenido <- obtenerContenido ruta
+    contenidoParseado <- return (parsearDocumento contenido)
+    imprimirListaBicicletas contenidoParseado
+{-
+Entradas: n\a
+Salidas: Muestra la información de todas las bicicletas en transito
+Restricciones: n\a
+Objetivo: Mostrar todas las bicicletas en estado de transito
+-}
+imprimirBicicletasTransito :: IO ()
+imprimirBicicletasTransito = do
+    putStrLn "\n"
+    putStrLn "****** Mostrando Bicicletas en transito******"
+{-
+Entradas: El nombre del parqueo del que se deben consultar las bicicletas
+Salidas: Muestra todas las bicicletas del parque indicado
+Restricciones: Debe existir un parqueo con el nombre indicado
+Objetivo: Mostrar la información de todas las bicicletas en el parque indicado
+-}
+consultarBicisParqueo :: IO ()
+consultarBicisParqueo = do
+    putStrLn "\n"
+    putStrLn "****** Mostrando Bicicletas En parqueo******"
+{-
+Entradas: El usuario indica un nombre de parqueo
+Salidas: Dependiendo del nombre del usuario:
+        # muestra todas las bicicletas del sistema y sus ubicaciones
+        transito muestra todas las bicicletas en transito
+        nombreParqueo muestra todas las bicicletas en el parque indicado
+Restricciones: Si el usuario indica un nombre que no se encuentra en la lista de parqueos entonces muestra un mensaje de error
+Objetivo: Consultar las ubicaciones de cada bicicleta
+-}
+mostrarAsignarBicicletas :: IO ()
+mostrarAsignarBicicletas = do
+    putStrLn "\n"
+    putStrLn "******Mostrar y asignar bicicletas******"
+    putStrLn "Indique el nombre del parqueo: "
+    nombreParqueo <- getLine
+    if nombreParqueo == "#"
+        then imprimirBicicletas
+    else if nombreParqueo == "transito"
+        then imprimirBicicletasTransito
+    else
+        consultarBicisParqueo
+    menuOperativas
 {-
 Entradas: Un caracter que representa la selección hecha por el usuario
 Salidas: Dependiendo de la selección del usuario el sistema desplegará una funcionalidad u otra
@@ -121,7 +197,7 @@ Objetivo: Desplegar el menú de opciones operativas para el usuario "administrad
 menuOperativas :: IO ()
 menuOperativas = do
     putStrLn "\n"
-    putStrLn "Menú de Opciones Operativas"
+    putStrLn "******Menú de Opciones Operativas******"
     putStrLn "1. Información Comercial"
     putStrLn "2. Cargar y Mostrar Parqueos"
     putStrLn "3. Mostrar y Asignar Bicicletas"
@@ -133,7 +209,7 @@ menuOperativas = do
     case opcion of
         "1" -> infoComercial               
         "2" -> cargarParqueos
-        "3" -> putStrLn "Has seleccionado Mostrar y Asignar Bicicletas"
+        "3" -> mostrarAsignarBicicletas
         "4" -> putStrLn "Has seleccionado Cargar Usuarios"
         "5" -> putStrLn "Has seleccionado Estadísticas"
         "6" -> menuPrincipal
@@ -149,7 +225,7 @@ Objetivo: Desplegar el menú de opciones generales para el usuario general
 menuGenerales :: IO ()
 menuGenerales = do
     putStrLn "\n"
-    putStrLn "Menú de Opciones Generales"
+    putStrLn "******Menú de Opciones Generales******"
     putStrLn "1. Consultar Bicicletas"
     putStrLn "2. Alquilar"
     putStrLn "3. Facturar"
@@ -173,7 +249,7 @@ Objetivo: Desplegar el menú principal que se muestra en el programa
 menuPrincipal :: IO ()
 menuPrincipal = do
     putStrLn "\n"
-    putStrLn "Menú Principal"
+    putStrLn "******Menú Principal******"
     putStrLn "1. Opciones Operativas"
     putStrLn "2. Opciones Generales"
     putStrLn "3. Salir del Programa"
