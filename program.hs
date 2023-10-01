@@ -133,19 +133,47 @@ Objetivo: Imprimir la información de todas las bicicletas del sistema
 imprimirListaBicicletas :: [[String]] -> IO ()
 imprimirListaBicicletas bicicletas = mapM_ imprimirInfoBicicletas bicicletas
 {-
+Entradas: La lista con la información de una ubicación de bicicletas
+Salidas: imprime la información de cada ubicación de bicicleta
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de una ubicación de bicicleta
+-}
+imprimirInfoUbicacion :: [String] -> IO ()
+imprimirInfoUbicacion [codigoBicicleta, ubicacion] = do
+  putStrLn "\n"
+  putStrLn $ "Codigo Bicicleta: " ++ codigoBicicleta
+  putStrLn $ "Ubicacion: " ++ ubicacion
+imprimirInfoUbicacion _ = putStrLn "La lista de bicicletas no tiene el formato esperado."
+{-
+Entradas: La lista con la ubicación de todas las bicicletas
+Salidas: Pasa la lista de todas las ubicaciones de bicicletas a una función para imprimir la información de cada ubicación
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de todas las ubicaciones de bicicletas
+-}
+imprimirListaUbicaciones :: [[String]] -> IO ()
+imprimirListaUbicaciones ubicaciones = mapM_ imprimirInfoUbicacion ubicaciones
+{-
 Entradas: La ruta de la información de todas las bicicletas del sistema
 Salidas: Muestra en pantalla la información de todas las bicicletas del sistema
 Restricciones: El archivo de bicicletas debe existir en el directorio
 Objetivo: Mostrar la información de todas las bicicletas del sistema
 -}
-imprimirBicicletas :: IO ()
-imprimirBicicletas = do
+imprimirUbicacionesBicicletas :: IO ()
+imprimirUbicacionesBicicletas = do
     putStrLn "\n"
     putStrLn "****** Mostrando Bicicletas y ubicacion******"
-    let ruta = "bicicletas.txt"
+    let ruta = "ubicacionesBicicletas.txt"
     contenido <- obtenerContenido ruta
     contenidoParseado <- return (parsearDocumento contenido)
-    imprimirListaBicicletas contenidoParseado
+    imprimirListaUbicaciones contenidoParseado
+{-
+Entradas: La lista de todas las bicicletas y sus ubicaciones
+Salidas: Retorna la lista de bicicletas cuya ubicación sea "transito"
+Restricciones: La lista recibida no debe estar vacía
+Objetivo: Mostrar todas las bicicletas en estado de transito
+-}
+filtrarPorTransito :: [[String]] -> [[String]]
+filtrarPorTransito listaBicicletas = filter (\[_, ubicacion] -> ubicacion == "transito") listaBicicletas
 {-
 Entradas: n\a
 Salidas: Muestra la información de todas las bicicletas en transito
@@ -155,7 +183,13 @@ Objetivo: Mostrar todas las bicicletas en estado de transito
 imprimirBicicletasTransito :: IO ()
 imprimirBicicletasTransito = do
     putStrLn "\n"
-    putStrLn "****** Mostrando Bicicletas en transito******"
+    putStrLn "****** Mostrando Bicicletas en tránsito ******"
+    let ruta = "ubicacionesBicicletas.txt"
+    contenido <- obtenerContenido ruta
+    let contenidoParseado = parsearDocumento contenido
+    let bicicletasEnTransito = filtrarPorTransito contenidoParseado
+    imprimirListaUbicaciones bicicletasEnTransito
+
 {-
 Entradas: El nombre del parqueo del que se deben consultar las bicicletas
 Salidas: Muestra todas las bicicletas del parque indicado
@@ -182,7 +216,7 @@ mostrarAsignarBicicletas = do
     putStrLn "Indique el nombre del parqueo: "
     nombreParqueo <- getLine
     if nombreParqueo == "#"
-        then imprimirBicicletas
+        then imprimirUbicacionesBicicletas
     else if nombreParqueo == "transito"
         then imprimirBicicletasTransito
     else
