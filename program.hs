@@ -431,6 +431,29 @@ Objetivo: Calcular la distancia euclidiana entre dos puntos demarcados por pares
 calcularDistancia :: Double -> Double -> Double -> Double -> Double
 calcularDistancia x1 y1 x2 y2 = sqrt ((x2 - x1)^2 + (y2 - y1)^2)
 
+{-
+Entradas: La latitud de la ubicacion del usuario, la longitud de la ubicacion del usuario, la distancia menor entre un parqueo y el punto indicado por el usuario y la lista de todos los parqueos
+Salidas: Retorna el parqueo Mas cercano al punto indicado
+Restricciones: los parametros deben ser numericos y listas
+Objetivo: Conseguir el parqueo mas cercano al punto donde se encuentra el usuario que realiza la consulta
+-}
+conseguirParqueoMasCercano :: Double -> Double -> Double -> [String] -> [[String]] -> [String]
+conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano [] = parqueoMasCercano
+conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano listaParqueos = do
+    let primerParqueo = listaParqueos !! 0
+    let latitudPrimerParqueo = obtenerNumero (primerParqueo !! 4 !! 0)
+    let longitudPrimerParqueo = obtenerNumero (primerParqueo !! 5 !! 0)
+    let distanciaPrimerParqueo = calcularDistancia latitudUsuario longitudUsuario latitudPrimerParqueo longitudPrimerParqueo
+    if distanciaMenor > distanciaPrimerParqueo
+        then do
+            let nuevaDistanciaMenor = distanciaPrimerParqueo
+            let nuevoParqueoMasCercano = primerParqueo
+            let nuevaListaParqueos = tail listaParqueos
+            conseguirParqueoMasCercano latitudUsuario longitudUsuario nuevaDistanciaMenor nuevoParqueoMasCercano nuevaListaParqueos
+        else do
+            let nuevaListaParqueos = tail listaParqueos
+            conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano nuevaListaParqueos
+
 main :: IO ()
 main = do
     menuPrincipal
