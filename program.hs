@@ -482,7 +482,22 @@ obtenerParqueoMasCercano x y = do
             putStrLn "Los valores ingresados deben ser numericos"
             consultarBicicletas
 
-
+{-
+Entradas: El usuario indica dos ejes, latitud y longitud
+Salidas: El sistema despliega la información del parqueo más cercano a esa posición y muestra todas las bicicletas en ese parqueo
+Restricciones: Los valores ingresados por el usuario deben ser numéricos
+Objetivo: Mostrar el parqueo más cercano y las bicicletas en dicho parqueo
+-}
+consultarBicicletas :: IO ()   --consultar parqueo mas cercano a una ubicacion
+consultarBicicletas = do
+    putStrLn "\n"
+    putStrLn "*****Consultando bicicletas mas cercanas a su ubicación*****"
+    putStrLn "Ingrese su latitud (eje X): "
+    latitudX <- getLine
+    putStrLn "Ingrese su longitud (eje Y): "
+    longitudY <- getLine
+    obtenerParqueoMasCercano latitudX longitudY
+    menuGenerales
 main :: IO ()
 main = do
     menuPrincipal
