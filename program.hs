@@ -412,6 +412,16 @@ convertirANumero c = case reads [c] of
   [(n, "")] -> Just n
   _ -> Nothing
 
+
+{-
+Entradas: Una linea de caracteres que representa un numero
+Salidas: El numero en formato double 
+Restricciones: debe recibirse un valor numérico
+Objetivo: Convertir de char a numero double
+-}
+obtenerNumero :: Char -> Double
+obtenerNumero c = fromMaybe 0 (convertirANumero c)
+
 main :: IO ()
 main = do
     menuPrincipal
