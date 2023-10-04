@@ -454,6 +454,35 @@ conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueo
             let nuevaListaParqueos = tail listaParqueos
             conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano nuevaListaParqueos
 
+{-
+Entradas: El usuario indica dos ejes, latitud y longitud
+Salidas: El sistema despliega la información del parqueo más cercano a esa posición y muestra todas las bicicletas en ese parqueo
+Restricciones: Los valores ingresados por el usuario deben ser numéricos
+Objetivo: Mostrar el parqueo más cercano y las bicicletas en dicho parqueo
+-}
+obtenerParqueoMasCercano :: String -> String -> IO ()
+obtenerParqueoMasCercano x y = do
+    if esNumero x && esNumero y
+        then do
+            let ruta = "parqueos.txt"
+            contenido <- obtenerContenido ruta
+            listaParqueos <- return (parsearDocumento contenido)
+            let primerParqueo = head listaParqueos
+            let restoParqueos = tail listaParqueos
+            let latitudPrimerParqueo = obtenerNumero (primerParqueo !! 4 !! 0)
+            let longitudPrimerParqueo = obtenerNumero (primerParqueo !! 5 !! 0)
+            let latitudUsuario = obtenerNumero (head x)
+            let longitudUsuario = obtenerNumero (head y)
+            let distancia = calcularDistancia latitudUsuario longitudUsuario latitudPrimerParqueo longitudPrimerParqueo
+            let parqueoMasCercano = conseguirParqueoMasCercano latitudUsuario longitudUsuario distancia primerParqueo restoParqueos
+            imprimirInfoParqueo parqueoMasCercano
+            let nombreParqueo = parqueoMasCercano !! 1
+            consultarBicisParqueo nombreParqueo
+        else do
+            putStrLn "Los valores ingresados deben ser numericos"
+            consultarBicicletas
+
+
 main :: IO ()
 main = do
     menuPrincipal
