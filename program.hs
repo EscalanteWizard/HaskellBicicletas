@@ -401,6 +401,16 @@ Objetivo: Determinar si un caracter es un numero o ono lo es
 esNumero :: String -> Bool
 esNumero num = all isDigit num
 
+{-
+Entradas: Una linea de caracteres que representa un numero
+Salidas: El numero en formato double con la palabra reservada "Just" al inicio
+Restricciones: debe recibirse un valor numérico
+Objetivo: Convertir de char a numero double
+-}
+convertirANumero :: Char -> Maybe Double
+convertirANumero c = case reads [c] of
+  [(n, "")] -> Just n
+  _ -> Nothing
 
 main :: IO ()
 main = do
