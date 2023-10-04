@@ -1,12 +1,12 @@
-P001,Cocles,Cocles puerto viejo,LI,9.64,-82.73
-P002,Punta Uva,Puerto viejo de Limon,LI,9.64,-82.68
-P003,Manzanillo,Puerto viejo de Limon,LI,9.63,-82.66
-P004,Puerto Viejo,Talamanca Limon,LI,9.65,-82.75
-P005,Playa Bonita,Limon Canton Central,LI,10.00,-83.06
-P006,Moin,Limon Costa Rica,Li,10.00,-83.09
-P007,Conchal,Puerto Viejo Guanacaste,GU,10.39,-85.81
-P008,Guayabos,Curridabat San Jose Costa Rica,SJ,9.92,-84.03
-P009,Cartago,Cartago canton central,CA,9.85,-83.91
-P010,Paseo de los turistas,Puntarenas Canton central,PU,9.97,-84.83
-P011,Oxigeno,Heredia canton central,HE,9.99,-84.13
-P012,Alajuela, Alajuela Canton central,AL,10.02,-84.20
+P001,Cocles,Cocles puerto viejo,LI,100,110
+P002,Punta Uva,Puerto viejo de Limon,LI,200,110
+P003,Manzanillo,Puerto viejo de Limon,LI,300,900
+P004,Puerto Viejo,Talamanca Limon,LI,400,800
+P005,Playa Bonita,Limon Canton Central,LI,500,700
+P006,Moin,Limon Costa Rica,Li,600,600
+P007,Conchal,Puerto Viejo Guanacaste,GU,700,500
+P008,Guayabos,Curridabat San Jose Costa Rica,SJ,800,400
+P009,Cartago,Cartago canton central,CA,900,400
+P010,Paseo de los turistas,Puntarenas Canton central,PU,101,300
+P011,Oxigeno,Heredia canton central,HE,110,200
+P012,Alajuela, Alajuela Canton central,AL,120,100
