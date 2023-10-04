@@ -422,6 +422,15 @@ Objetivo: Convertir de char a numero double
 obtenerNumero :: Char -> Double
 obtenerNumero c = fromMaybe 0 (convertirANumero c)
 
+{-
+Entradas: Cuatro números double
+Salidas: la distancia euclidiana de los cuatro numeros recibidos
+Restricciones: los parametros deben ser numericos
+Objetivo: Calcular la distancia euclidiana entre dos puntos demarcados por pares ordenados
+-}
+calcularDistancia :: Double -> Double -> Double -> Double -> Double
+calcularDistancia x1 y1 x2 y2 = sqrt ((x2 - x1)^2 + (y2 - y1)^2)
+
 main :: IO ()
 main = do
     menuPrincipal
