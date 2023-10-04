@@ -392,6 +392,16 @@ menuPrincipal = do
             putStrLn "Opción inválida. Por favor, ingrese un número válido."
             menuPrincipal
 
+{-
+Entradas: Un caracter
+Salidas: true si el caracter ingresado es un numero, false si no lo es
+Restricciones: debe recibirse un valor
+Objetivo: Determinar si un caracter es un numero o ono lo es
+-}
+esNumero :: String -> Bool
+esNumero num = all isDigit num
+
+
 main :: IO ()
 main = do
     menuPrincipal
