@@ -468,9 +468,26 @@ verificarCodigoParqueo codigoParqueo = do
     let listaParqueos = parsearDocumento contenidoParqueos
     return (any (\parqueo -> head parqueo == codigoParqueo) listaParqueos)
 
-obtenerListaDeBicicsEnParqueoPorCodigo :: IO ()
+obtenerListaDeUbicacionesPorCodigoParqueo :: String -> IO [[String]]
+obtenerListaDeUbicacionesPorCodigoParqueo codigoParqueo = do
+    let rutaUbicaciones = "ubicacionesBicicletas.txt"
+    contenidoUbicaciones <- obtenerContenido rutaUbicaciones
+    let listaUbicaciones = parsearDocumento contenidoUbicaciones
+    return (filter (\ubicacion -> codigoParqueo == last ubicacion) listaUbicaciones)
+
+obtenerListaDeBicisEnListaUbicaciones :: [[String]] -> IO [[String]]
+obtenerListaDeBicisEnListaUbicaciones listaUbicaciones = do
+    let ruta = "bicicletas.txt"
+    contenidoBicicletas <- obtenerContenido ruta
+    let listaBicicletas = parsearDocumento contenidoBicicletas
+    return (filter (\bicicleta -> any (\ubicacion -> head ubicacion == head bicicleta) listaUbicaciones) listaBicicletas)
+
+obtenerListaDeBicicsEnParqueoPorCodigo :: String -> IO [[String]]
 obtenerListaDeBicicsEnParqueoPorCodigo codigoParqueo = do
-    let ruta
+    ubicacionesConEseCodigoParqueo <- obtenerListaDeUbicacionesPorCodigoParqueo codigoParqueo
+    bicicletasEnEseParqueo <- obtenerListaDeBicisEnListaUbicaciones ubicacionesConEseCodigoParqueo
+    return bicicletasEnEseParqueo
+
 {-
 Entradas: El codigo de un parqueo de bicicletas
 Salidas: Muestra en pantalla todas las bicicletas en dicho parqueo
@@ -479,7 +496,8 @@ Objetivo: Mostrar todas las bicicletas (codigo y tipo) en el parqueo del codigo 
 -}
 consultarBicicletasEnParqueoPorCodigo :: String -> IO ()
 consultarBicicletasEnParqueoPorCodigo codigoParqueo = do
-    let listaDeBicicsEnParqueo = obtenerListaDeBicicsEnParqueoPorCodigo codigoParqueo
+    putStrLn "Mostrando las bicicletas en el parqueo indicado"
+    listaDeBicicsEnParqueo <- obtenerListaDeBicicsEnParqueoPorCodigo codigoParqueo
     imprimirListaBicicletas listaDeBicicsEnParqueo
 {-
 Entradas: El usuario debe indicar cedula, codigo de parqueo de salida, codigo de parqueo de llegada
@@ -504,7 +522,7 @@ alquilar = do
             parqueoLlegadaValido <- verificarCodigoParqueo codigoParqueoLlegada
             if parqueoSalidaValido && parqueoLlegadaValido
                 then do
-                    putStrLn "Informando"
+                    consultarBicicletasEnParqueoPorCodigo codigoParqueoSalida
                 else do
                     putStrLn "Debe ingresar codigos de parqueo válidos"
                     alquilar
@@ -530,7 +548,7 @@ menuGenerales = do
     opcion <- getLine
     case opcion of
         "1" -> consultarBicicletas
-        "2" -> putStrLn "Has seleccionado Alquilar"
+        "2" -> alquilar
         "3" -> putStrLn "Has seleccionado Facturar"
         "4" -> menuPrincipal
         _ -> do
