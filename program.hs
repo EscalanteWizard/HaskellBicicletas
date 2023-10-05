@@ -2,6 +2,8 @@
 import System.IO
 import Data.List.Split (splitOn)
 import System.Directory (doesFileExist)
+import Data.Char (isDigit)
+import Data.Maybe (fromMaybe)
 {-
 Entradas: un string
 Salidas: El string recibido parseado en las comas
@@ -226,7 +228,6 @@ filtrarUbicacionesPorCodigoParqueo _ [] = []
 filtrarUbicacionesPorCodigoParqueo codigoParqueo (ubicacion:restoUbicaciones)
     | codigoParqueo == ubicacion !! 1 = ubicacion : filtrarUbicacionesPorCodigoParqueo codigoParqueo restoUbicaciones
     | otherwise = filtrarUbicacionesPorCodigoParqueo codigoParqueo restoUbicaciones
-
 {-
 Entradas: El nombre del parqueo del que se deben consultar las bicicletas
 Salidas: Muestra todas las bicicletas del parque indicado
@@ -346,6 +347,172 @@ menuOperativas = do
             putStrLn "Opción inválida. Por favor, ingrese un número válido."
             menuOperativas
 {-
+Entradas: Un caracter
+Salidas: true si el caracter ingresado es un numero, false si no lo es
+Restricciones: debe recibirse un valor
+Objetivo: Determinar si un caracter es un numero o ono lo es
+-}
+esNumero :: String -> Bool
+esNumero num = all isDigit num
+{-
+Entradas: Una linea de caracteres que representa un numero
+Salidas: El numero en formato double con la palabra reservada "Just" al inicio
+Restricciones: debe recibirse un valor numérico
+Objetivo: Convertir de char a numero double
+-}
+convertirANumero :: Char -> Maybe Double
+convertirANumero c = case reads [c] of
+  [(n, "")] -> Just n
+  _ -> Nothing
+{-
+Entradas: Una linea de caracteres que representa un numero
+Salidas: El numero en formato double 
+Restricciones: debe recibirse un valor numérico
+Objetivo: Convertir de char a numero double
+-}
+obtenerNumero :: Char -> Double
+obtenerNumero c = fromMaybe 0 (convertirANumero c)
+{-
+Entradas: Cuatro números double
+Salidas: la distancia euclidiana de los cuatro numeros recibidos
+Restricciones: los parametros deben ser numericos
+Objetivo: Calcular la distancia euclidiana entre dos puntos demarcados por pares ordenados
+-}
+calcularDistancia :: Double -> Double -> Double -> Double -> Double
+calcularDistancia x1 y1 x2 y2 = sqrt ((x2 - x1)^2 + (y2 - y1)^2)
+{-
+Entradas: La latitud de la ubicacion del usuario, la longitud de la ubicacion del usuario, la distancia menor entre un parqueo y el punto indicado por el usuario y la lista de todos los parqueos
+Salidas: Retorna el parqueo Mas cercano al punto indicado
+Restricciones: los parametros deben ser numericos y listas
+Objetivo: Conseguir el parqueo mas cercano al punto donde se encuentra el usuario que realiza la consulta
+-}
+conseguirParqueoMasCercano :: Double -> Double -> Double -> [String] -> [[String]] -> [String]
+conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano [] = parqueoMasCercano
+conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano listaParqueos = do
+    let primerParqueo = listaParqueos !! 0
+    let latitudPrimerParqueo = obtenerNumero (primerParqueo !! 4 !! 0)
+    let longitudPrimerParqueo = obtenerNumero (primerParqueo !! 5 !! 0)
+    let distanciaPrimerParqueo = calcularDistancia latitudUsuario longitudUsuario latitudPrimerParqueo longitudPrimerParqueo
+    if distanciaMenor > distanciaPrimerParqueo
+        then do
+            let nuevaDistanciaMenor = distanciaPrimerParqueo
+            let nuevoParqueoMasCercano = primerParqueo
+            let nuevaListaParqueos = tail listaParqueos
+            conseguirParqueoMasCercano latitudUsuario longitudUsuario nuevaDistanciaMenor nuevoParqueoMasCercano nuevaListaParqueos
+        else do
+            let nuevaListaParqueos = tail listaParqueos
+            conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano nuevaListaParqueos
+{-
+Entradas: El usuario indica dos ejes, latitud y longitud
+Salidas: El sistema despliega la información del parqueo más cercano a esa posición y muestra todas las bicicletas en ese parqueo
+Restricciones: Los valores ingresados por el usuario deben ser numéricos
+Objetivo: Mostrar el parqueo más cercano y las bicicletas en dicho parqueo
+-}
+obtenerParqueoMasCercano :: String -> String -> IO ()
+obtenerParqueoMasCercano x y = do
+    if esNumero x && esNumero y
+        then do
+            let ruta = "parqueos.txt"
+            contenido <- obtenerContenido ruta
+            listaParqueos <- return (parsearDocumento contenido)
+            let primerParqueo = head listaParqueos
+            let restoParqueos = tail listaParqueos
+            let latitudPrimerParqueo = obtenerNumero (primerParqueo !! 4 !! 0)
+            let longitudPrimerParqueo = obtenerNumero (primerParqueo !! 5 !! 0)
+            let latitudUsuario = obtenerNumero (head x)
+            let longitudUsuario = obtenerNumero (head y)
+            let distancia = calcularDistancia latitudUsuario longitudUsuario latitudPrimerParqueo longitudPrimerParqueo
+            let parqueoMasCercano = conseguirParqueoMasCercano latitudUsuario longitudUsuario distancia primerParqueo restoParqueos
+            imprimirInfoParqueo parqueoMasCercano
+            let nombreParqueo = parqueoMasCercano !! 1
+            consultarBicisParqueo nombreParqueo
+        else do
+            putStrLn "Los valores ingresados deben ser numericos"
+            consultarBicicletas
+{-
+Entradas: El usuario indica dos ejes, latitud y longitud
+Salidas: El sistema despliega la información del parqueo más cercano a esa posición y muestra todas las bicicletas en ese parqueo
+Restricciones: Los valores ingresados por el usuario deben ser numéricos
+Objetivo: Mostrar el parqueo más cercano y las bicicletas en dicho parqueo
+-}
+consultarBicicletas :: IO ()   --consultar parqueo mas cercano a una ubicacion
+consultarBicicletas = do
+    putStrLn "\n"
+    putStrLn "******Consultando bicicletas mas cercanas a su ubicación******"
+    putStrLn "Ingrese su latitud (eje X): "
+    latitudX <- getLine
+    putStrLn "Ingrese su longitud (eje Y): "
+    longitudY <- getLine
+    obtenerParqueoMasCercano latitudX longitudY
+    menuGenerales
+{-
+Entradas: La cedula de un usuario
+Salidas: True si la cedula ingresada se encuentra entre las cédeulas de los usuarios del sistema, false si no
+Restricciones: n\a
+Objetivo: Verificaar que existe la cedula del usuario indicada en el sistema
+-}
+verificarCedulaUsuario :: String -> IO Bool
+verificarCedulaUsuario cedula = do
+    contenidoUsuarios <- obtenerContenido "usuarios.txt"
+    let listaUsuarios = parsearDocumento contenidoUsuarios
+    return (any (\usuario -> head usuario == cedula) listaUsuarios)
+{-
+Entradas: El codigo de un parqueo
+Salidas: True si el codigo ingresado se encuentra entre los codigos de los parqueos del sistema, false si no
+Restricciones: n\a
+Objetivo: Verificaar que existe el codigo del parqueo en el sistema
+-}
+verificarCodigoParqueo :: String -> IO Bool
+verificarCodigoParqueo codigoParqueo = do
+    contenidoParqueos <- obtenerContenido "parqueos.txt"
+    let listaParqueos = parsearDocumento contenidoParqueos
+    return (any (\parqueo -> head parqueo == codigoParqueo) listaParqueos)
+
+obtenerListaDeBicicsEnParqueoPorCodigo :: IO ()
+obtenerListaDeBicicsEnParqueoPorCodigo codigoParqueo = do
+    let ruta
+{-
+Entradas: El codigo de un parqueo de bicicletas
+Salidas: Muestra en pantalla todas las bicicletas en dicho parqueo
+Restricciones: El codigo del parqueo debe ser un parqueo válido dentro del sistema
+Objetivo: Mostrar todas las bicicletas (codigo y tipo) en el parqueo del codigo suministrado
+-}
+consultarBicicletasEnParqueoPorCodigo :: String -> IO ()
+consultarBicicletasEnParqueoPorCodigo codigoParqueo = do
+    let listaDeBicicsEnParqueo = obtenerListaDeBicicsEnParqueoPorCodigo codigoParqueo
+    imprimirListaBicicletas listaDeBicicsEnParqueo
+{-
+Entradas: El usuario debe indicar cedula, codigo de parqueo de salida, codigo de parqueo de llegada
+Salidas: Permite al usuario generar un alquiler y guardarlo en el sistema
+Restricciones: La cedula indicada por el usuario debe ser una cedula valida dentro del sistema, los identificadores de salida, llegada y bicicleta deben ser codigos identificadores validos en el sistema
+Objetivo: Generar una factura dentro del sistema
+-}
+alquilar :: IO ()
+alquilar = do
+    putStrLn "\n"
+    putStrLn "******Generando alquiler******"
+    putStrLn "Indique su cedula: "
+    cedula <- getLine
+    cedulaValida <- verificarCedulaUsuario cedula
+    if cedulaValida
+        then do
+            putStrLn "Ingrese el código el parqueo de salida: "
+            codigoParqueoSalida <- getLine
+            putStrLn "Ingrese el código del parqueo de llegada"
+            codigoParqueoLlegada <- getLine
+            parqueoSalidaValido <- verificarCodigoParqueo codigoParqueoSalida
+            parqueoLlegadaValido <- verificarCodigoParqueo codigoParqueoLlegada
+            if parqueoSalidaValido && parqueoLlegadaValido
+                then do
+                    putStrLn "Informando"
+                else do
+                    putStrLn "Debe ingresar codigos de parqueo válidos"
+                    alquilar
+        else do
+            putStrLn "La cedula ingresada no corresponde a una cedula válida"
+            alquilar
+    menuGenerales
+{-
 Entradas: Un caracter que representa la selección hecha por el usuario
 Salidas: Dependiendo de la selección del usuario el sistema desplegará una funcionalidad u otra
 Restricciones: El usuario debe seleccionar una opción válida
@@ -362,7 +529,7 @@ menuGenerales = do
     putStrLn "Ingrese el número de la opción deseada:"
     opcion <- getLine
     case opcion of
-        "1" -> putStrLn "Has seleccionado Consultar Bicicletas"
+        "1" -> consultarBicicletas
         "2" -> putStrLn "Has seleccionado Alquilar"
         "3" -> putStrLn "Has seleccionado Facturar"
         "4" -> menuPrincipal
@@ -392,112 +559,6 @@ menuPrincipal = do
             putStrLn "Opción inválida. Por favor, ingrese un número válido."
             menuPrincipal
 
-{-
-Entradas: Un caracter
-Salidas: true si el caracter ingresado es un numero, false si no lo es
-Restricciones: debe recibirse un valor
-Objetivo: Determinar si un caracter es un numero o ono lo es
--}
-esNumero :: String -> Bool
-esNumero num = all isDigit num
-
-{-
-Entradas: Una linea de caracteres que representa un numero
-Salidas: El numero en formato double con la palabra reservada "Just" al inicio
-Restricciones: debe recibirse un valor numérico
-Objetivo: Convertir de char a numero double
--}
-convertirANumero :: Char -> Maybe Double
-convertirANumero c = case reads [c] of
-  [(n, "")] -> Just n
-  _ -> Nothing
-
-
-{-
-Entradas: Una linea de caracteres que representa un numero
-Salidas: El numero en formato double 
-Restricciones: debe recibirse un valor numérico
-Objetivo: Convertir de char a numero double
--}
-obtenerNumero :: Char -> Double
-obtenerNumero c = fromMaybe 0 (convertirANumero c)
-
-{-
-Entradas: Cuatro números double
-Salidas: la distancia euclidiana de los cuatro numeros recibidos
-Restricciones: los parametros deben ser numericos
-Objetivo: Calcular la distancia euclidiana entre dos puntos demarcados por pares ordenados
--}
-calcularDistancia :: Double -> Double -> Double -> Double -> Double
-calcularDistancia x1 y1 x2 y2 = sqrt ((x2 - x1)^2 + (y2 - y1)^2)
-
-{-
-Entradas: La latitud de la ubicacion del usuario, la longitud de la ubicacion del usuario, la distancia menor entre un parqueo y el punto indicado por el usuario y la lista de todos los parqueos
-Salidas: Retorna el parqueo Mas cercano al punto indicado
-Restricciones: los parametros deben ser numericos y listas
-Objetivo: Conseguir el parqueo mas cercano al punto donde se encuentra el usuario que realiza la consulta
--}
-conseguirParqueoMasCercano :: Double -> Double -> Double -> [String] -> [[String]] -> [String]
-conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano [] = parqueoMasCercano
-conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano listaParqueos = do
-    let primerParqueo = listaParqueos !! 0
-    let latitudPrimerParqueo = obtenerNumero (primerParqueo !! 4 !! 0)
-    let longitudPrimerParqueo = obtenerNumero (primerParqueo !! 5 !! 0)
-    let distanciaPrimerParqueo = calcularDistancia latitudUsuario longitudUsuario latitudPrimerParqueo longitudPrimerParqueo
-    if distanciaMenor > distanciaPrimerParqueo
-        then do
-            let nuevaDistanciaMenor = distanciaPrimerParqueo
-            let nuevoParqueoMasCercano = primerParqueo
-            let nuevaListaParqueos = tail listaParqueos
-            conseguirParqueoMasCercano latitudUsuario longitudUsuario nuevaDistanciaMenor nuevoParqueoMasCercano nuevaListaParqueos
-        else do
-            let nuevaListaParqueos = tail listaParqueos
-            conseguirParqueoMasCercano latitudUsuario longitudUsuario distanciaMenor parqueoMasCercano nuevaListaParqueos
-
-{-
-Entradas: El usuario indica dos ejes, latitud y longitud
-Salidas: El sistema despliega la información del parqueo más cercano a esa posición y muestra todas las bicicletas en ese parqueo
-Restricciones: Los valores ingresados por el usuario deben ser numéricos
-Objetivo: Mostrar el parqueo más cercano y las bicicletas en dicho parqueo
--}
-obtenerParqueoMasCercano :: String -> String -> IO ()
-obtenerParqueoMasCercano x y = do
-    if esNumero x && esNumero y
-        then do
-            let ruta = "parqueos.txt"
-            contenido <- obtenerContenido ruta
-            listaParqueos <- return (parsearDocumento contenido)
-            let primerParqueo = head listaParqueos
-            let restoParqueos = tail listaParqueos
-            let latitudPrimerParqueo = obtenerNumero (primerParqueo !! 4 !! 0)
-            let longitudPrimerParqueo = obtenerNumero (primerParqueo !! 5 !! 0)
-            let latitudUsuario = obtenerNumero (head x)
-            let longitudUsuario = obtenerNumero (head y)
-            let distancia = calcularDistancia latitudUsuario longitudUsuario latitudPrimerParqueo longitudPrimerParqueo
-            let parqueoMasCercano = conseguirParqueoMasCercano latitudUsuario longitudUsuario distancia primerParqueo restoParqueos
-            imprimirInfoParqueo parqueoMasCercano
-            let nombreParqueo = parqueoMasCercano !! 1
-            consultarBicisParqueo nombreParqueo
-        else do
-            putStrLn "Los valores ingresados deben ser numericos"
-            consultarBicicletas
-
-{-
-Entradas: El usuario indica dos ejes, latitud y longitud
-Salidas: El sistema despliega la información del parqueo más cercano a esa posición y muestra todas las bicicletas en ese parqueo
-Restricciones: Los valores ingresados por el usuario deben ser numéricos
-Objetivo: Mostrar el parqueo más cercano y las bicicletas en dicho parqueo
--}
-consultarBicicletas :: IO ()   --consultar parqueo mas cercano a una ubicacion
-consultarBicicletas = do
-    putStrLn "\n"
-    putStrLn "*****Consultando bicicletas mas cercanas a su ubicación*****"
-    putStrLn "Ingrese su latitud (eje X): "
-    latitudX <- getLine
-    putStrLn "Ingrese su longitud (eje Y): "
-    longitudY <- getLine
-    obtenerParqueoMasCercano latitudX longitudY
-    menuGenerales
 main :: IO ()
 main = do
     menuPrincipal
