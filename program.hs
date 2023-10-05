@@ -4,6 +4,7 @@ import Data.List.Split (splitOn)
 import System.Directory (doesFileExist)
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
+import Data.List (intercalate) 
 {-
 Entradas: un string
 Salidas: El string recibido parseado en las comas
@@ -134,6 +135,30 @@ Objetivo: Imprimir la información de todas las bicicletas del sistema
 -}
 imprimirListaBicicletas :: [[String]] -> IO ()  --Bicicletas y el tipo de torque
 imprimirListaBicicletas bicicletas = mapM_ imprimirInfoBicicletas bicicletas
+{-
+Entradas: La lista con la información de un alquiler del sistema
+Salidas: imprime la información del alquiler recibido
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de una alquiler
+-}
+imprimirInfoAlquiler :: [String] -> IO ()
+imprimirInfoAlquiler [codigoAlquiler,cedulaUsuario,codigoBici,codigParqueoSalida,codigoParqueoDestino,estado] = do
+  putStrLn "\n"
+  putStrLn $ "Codigo: " ++ codigoAlquiler
+  putStrLn $ "Cedula Usuario: " ++ cedulaUsuario
+  putStrLn $ "Codigo de Bicicleta: " ++ codigoBici
+  putStrLn $ "Codigo del parqueo de salida: " ++ codigParqueoSalida
+  putStrLn $ "Codigo del parqueo de destino: " ++ codigoParqueoDestino
+  putStrLn $ "Estado: " ++ estado
+imprimirInfoAlquiler _ = putStrLn "El alquiler no tiene el formato esperado."
+{-
+Entradas: La lista con la información de alquileres
+Salidas: Pasa la lista de todos los alquileres a una función para imprimir la información de cada alquiler
+Restricciones: La lista recibida debe tener el formato adecuado
+Objetivo: Imprimir la información de todos los alquileres recibidos
+-}
+imprimirListaAlquileres :: [[String]] -> IO () 
+imprimirListaAlquileres alquileres = mapM_ imprimirInfoAlquiler alquileres
 {-
 Entradas: La ruta de todas las bicicletas del sistema
 Salidas: Imprime la información de todas las bicicletas del sistema
@@ -467,27 +492,41 @@ verificarCodigoParqueo codigoParqueo = do
     contenidoParqueos <- obtenerContenido "parqueos.txt"
     let listaParqueos = parsearDocumento contenidoParqueos
     return (any (\parqueo -> head parqueo == codigoParqueo) listaParqueos)
-
+{-
+Entradas: El codigo de un parqueo
+Salidas: Retorna la lista de ubicaciones que contienen el codigo del aprqueo indicado
+Restricciones: El codigo debe ser un codigo valido
+Objetivo: Obtener la lista de ubicaciones con ese codigo de parqueo
+-}
 obtenerListaDeUbicacionesPorCodigoParqueo :: String -> IO [[String]]
 obtenerListaDeUbicacionesPorCodigoParqueo codigoParqueo = do
     let rutaUbicaciones = "ubicacionesBicicletas.txt"
     contenidoUbicaciones <- obtenerContenido rutaUbicaciones
     let listaUbicaciones = parsearDocumento contenidoUbicaciones
     return (filter (\ubicacion -> codigoParqueo == last ubicacion) listaUbicaciones)
-
+{-
+Entradas: Una lista de ubicaciones
+Salidas: Retorna la lista de bicicletas que se encuentren en la lista de ubicaciones suministrada
+Restricciones: La lista de ubicaciones suministrada no debe estar vacía
+Objetivo: Obtener la lista de bicicletas en una lista de ubicaciones
+-}
 obtenerListaDeBicisEnListaUbicaciones :: [[String]] -> IO [[String]]
 obtenerListaDeBicisEnListaUbicaciones listaUbicaciones = do
     let ruta = "bicicletas.txt"
     contenidoBicicletas <- obtenerContenido ruta
     let listaBicicletas = parsearDocumento contenidoBicicletas
     return (filter (\bicicleta -> any (\ubicacion -> head ubicacion == head bicicleta) listaUbicaciones) listaBicicletas)
-
-obtenerListaDeBicicsEnParqueoPorCodigo :: String -> IO [[String]]
+{-
+Entradas: El codigo de un parqueo
+Salidas: Retorna la lista de bicicletas que se encuentran en el parqueo del codigo suministrado
+Restricciones: El codigo debe ser un codigo valido
+Objetivo: Obtener la lista de bicicletas en el parqueo del codigo indicado
+-}
+obtenerListaDeBicicsEnParqueoPorCodigo :: String -> IO [[String]]  -- Bicicletas y su tipo de torque
 obtenerListaDeBicicsEnParqueoPorCodigo codigoParqueo = do
     ubicacionesConEseCodigoParqueo <- obtenerListaDeUbicacionesPorCodigoParqueo codigoParqueo
     bicicletasEnEseParqueo <- obtenerListaDeBicisEnListaUbicaciones ubicacionesConEseCodigoParqueo
     return bicicletasEnEseParqueo
-
 {-
 Entradas: El codigo de un parqueo de bicicletas
 Salidas: Muestra en pantalla todas las bicicletas en dicho parqueo
@@ -499,6 +538,36 @@ consultarBicicletasEnParqueoPorCodigo codigoParqueo = do
     putStrLn "Mostrando las bicicletas en el parqueo indicado"
     listaDeBicicsEnParqueo <- obtenerListaDeBicicsEnParqueoPorCodigo codigoParqueo
     imprimirListaBicicletas listaDeBicicsEnParqueo
+{-====================================================================================================================-}
+{-
+Entradas: El codigo de una bicicleta y una lista de bicicletas
+Salidas: True si existe alguna bicicleta cuyo codigo sea el codigo indicado, false si no
+Restricciones: La lista de bicicletas no debe estar vacía
+Objetivo: Verificar que una bicicleta se encuentra en una lista
+-}
+verificarExistenciaBiciEnParqueo :: String -> [[String]] -> Bool
+verificarExistenciaBiciEnParqueo codigoBici listaBicicletas =
+  any (\bicicleta -> codigoBici == head bicicleta) listaBicicletas
+
+generarCodigoAlquiler :: Int -> String
+generarCodigoAlquiler num = "A0" ++ show num
+
+agregarFilaADocumento :: FilePath -> [String] -> IO ()
+agregarFilaADocumento nombreArchivo nuevaFila =do
+    appendFile nombreArchivo (intercalate "," nuevaFila ++ "\n")
+
+alquilarAux :: String -> String -> String -> String -> IO ()
+alquilarAux cedulaUsuario codigoBici codigParqueoSalida codigoParqueoDestino = do
+    let rutaAlquileres = "alquileres.txt"
+    contenidoAlquileres <- obtenerContenido rutaAlquileres
+    listaAlquileres <- return (parsearDocumento contenidoAlquileres)
+    let cantidadAlquileres = length listaAlquileres
+    let codigoAlquiler = generarCodigoAlquiler cantidadAlquileres
+    let nuevoAlquiler = [codigoAlquiler,cedulaUsuario,codigoBici,codigParqueoSalida,codigoParqueoDestino,"activo"]
+    imprimirInfoAlquiler nuevoAlquiler
+    agregarFilaADocumento rutaAlquileres nuevoAlquiler
+    putStrLn "Alquiler generado correctamente"
+
 {-
 Entradas: El usuario debe indicar cedula, codigo de parqueo de salida, codigo de parqueo de llegada
 Salidas: Permite al usuario generar un alquiler y guardarlo en el sistema
@@ -523,6 +592,21 @@ alquilar = do
             if parqueoSalidaValido && parqueoLlegadaValido
                 then do
                     consultarBicicletasEnParqueoPorCodigo codigoParqueoSalida
+                    listaDeBicicletasEnElParqueoDeSalida <- obtenerListaDeBicicsEnParqueoPorCodigo codigoParqueoSalida
+                    if listaDeBicicletasEnElParqueoDeSalida == []
+                        then do
+                            putStrLn "El parqueo indicado no cuenta con bicicletas disponibles"
+                            alquilar
+                        else do
+                            putStrLn "Indique el codigo de la bicicleta que desea alquilar"
+                            codigoBiciAlquilar <- getLine
+                            existeBiciEnParqueo <- return (verificarExistenciaBiciEnParqueo codigoBiciAlquilar listaDeBicicletasEnElParqueoDeSalida)
+                            if existeBiciEnParqueo 
+                                then do                                    
+                                    alquilarAux cedula codigoBiciAlquilar codigoParqueoSalida codigoParqueoLlegada 
+                                else do
+                                    putStrLn "La bicicleta indicada no se encuentra en el parqueo de salida"
+                                    alquilar
                 else do
                     putStrLn "Debe ingresar codigos de parqueo válidos"
                     alquilar
