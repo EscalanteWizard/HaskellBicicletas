@@ -538,7 +538,6 @@ consultarBicicletasEnParqueoPorCodigo codigoParqueo = do
     putStrLn "Mostrando las bicicletas en el parqueo indicado"
     listaDeBicicsEnParqueo <- obtenerListaDeBicicsEnParqueoPorCodigo codigoParqueo
     imprimirListaBicicletas listaDeBicicsEnParqueo
-{-====================================================================================================================-}
 {-
 Entradas: El codigo de una bicicleta y una lista de bicicletas
 Salidas: True si existe alguna bicicleta cuyo codigo sea el codigo indicado, false si no
@@ -548,14 +547,55 @@ Objetivo: Verificar que una bicicleta se encuentra en una lista
 verificarExistenciaBiciEnParqueo :: String -> [[String]] -> Bool
 verificarExistenciaBiciEnParqueo codigoBici listaBicicletas =
   any (\bicicleta -> codigoBici == head bicicleta) listaBicicletas
-
+{-
+Entradas: Un numero entero que representa la cantidad existente actual de alquileres
+Salidas: Retorna un codigo formado por "A0" ++ el numero ingresado + 1
+Restricciones: n\a
+Objetivo: Generar un codigo de alquiler
+-}
 generarCodigoAlquiler :: Int -> String
-generarCodigoAlquiler num = "A0" ++ show num
-
+generarCodigoAlquiler num = "A00" ++ show (num+1)
+{-
+Entradas: Una ruta de un archivo y la lista de elementos que debe agregarse al archivo
+Salidas: Agrega en el documento indicado una nueva linea al final con el String de los elementos de la lista ingresada concatenados y separados por comas
+Restricciones: La ruta del documento indicado debe ser válida
+Objetivo: Agregar un nuevo elemento al documento indicado
+-}
 agregarFilaADocumento :: FilePath -> [String] -> IO ()
 agregarFilaADocumento nombreArchivo nuevaFila =do
     appendFile nombreArchivo (intercalate "," nuevaFila ++ "\n")
-
+{-
+Entradas: Una ruta de un archivo y la lista de elementos que deben escribirse en el archivo
+Salidas: Escribe en el documento indicado los elementos de la lista indicada, siendo cada posicion de la lista un nuevo renglon y sus elementos separados por comas
+Restricciones: La ruta del documento indicado debe ser válida y la lista no debe estar vacía
+Objetivo: Actualizar la información de un documento
+-}
+actualizarDocumento :: FilePath -> [[String]] -> IO ()
+actualizarDocumento ruta lista = do
+    let contenido = unlines (map (intercalate ",") lista)
+    withFile ruta WriteMode (\handle -> hPutStr handle contenido)
+{-
+Entradas: El codigo de una bicicleta y la ubicación nueva de la bicicleta
+Salidas: Actualiza en el documento de ubicaciones la ubicacion de la bicicleta del codigo indicado poniendo como su nueva ubicacion la ubicacion indicada
+Restricciones: La ruta del documento indicado debe ser válida
+Objetivo: Actualizar la ubicacion de una bicicleta
+-}
+actualizarUbicacionBicicleta :: String -> String -> IO ()
+actualizarUbicacionBicicleta codigoBicicleta ubicacion = do
+    let ruta = "ubicacionesBicicletas.txt"
+    contenido <- obtenerContenido ruta
+    listaUbicaciones <- return (parsearDocumento contenido)
+    let nuevaListaUbicaciones = map (\[bicicleta, oldUbicacion] -> if bicicleta == codigoBicicleta then [bicicleta, ubicacion] else [bicicleta, oldUbicacion]) listaUbicaciones
+    imprimirListaUbicaciones nuevaListaUbicaciones
+    var <- getLine
+    actualizarDocumento ruta nuevaListaUbicaciones
+    putStrLn "Ubicación de la bicicleta actualizada"
+{-
+Entradas: La cedula del usuario, el codigo de la bicicleta, el codigo del parqueo de salida, el codigo del parqueo de llegada
+Salidas: Crea un nuevo alquiler en el sistema
+Restricciones: La cedula indicada por el usuario debe ser una cedula valida dentro del sistema, los identificadores de salida, llegada y bicicleta deben ser codigos identificadores validos en el sistema
+Objetivo: Generar un aquiler en el sistema
+-}
 alquilarAux :: String -> String -> String -> String -> IO ()
 alquilarAux cedulaUsuario codigoBici codigParqueoSalida codigoParqueoDestino = do
     let rutaAlquileres = "alquileres.txt"
@@ -566,13 +606,13 @@ alquilarAux cedulaUsuario codigoBici codigParqueoSalida codigoParqueoDestino = d
     let nuevoAlquiler = [codigoAlquiler,cedulaUsuario,codigoBici,codigParqueoSalida,codigoParqueoDestino,"activo"]
     imprimirInfoAlquiler nuevoAlquiler
     agregarFilaADocumento rutaAlquileres nuevoAlquiler
+    actualizarUbicacionBicicleta codigoBici "transito"  --actualiza en el documento de ubicaciones la ubicacion de la bicicleta alquilada
     putStrLn "Alquiler generado correctamente"
-
 {-
 Entradas: El usuario debe indicar cedula, codigo de parqueo de salida, codigo de parqueo de llegada
 Salidas: Permite al usuario generar un alquiler y guardarlo en el sistema
 Restricciones: La cedula indicada por el usuario debe ser una cedula valida dentro del sistema, los identificadores de salida, llegada y bicicleta deben ser codigos identificadores validos en el sistema
-Objetivo: Generar una factura dentro del sistema
+Objetivo: Generar un alquiler dentro del sistema
 -}
 alquilar :: IO ()
 alquilar = do
@@ -614,6 +654,7 @@ alquilar = do
             putStrLn "La cedula ingresada no corresponde a una cedula válida"
             alquilar
     menuGenerales
+{-====================================================================================================================-}
 {-
 Entradas: Un caracter que representa la selección hecha por el usuario
 Salidas: Dependiendo de la selección del usuario el sistema desplegará una funcionalidad u otra
