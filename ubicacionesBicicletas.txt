@@ -5,8 +5,8 @@ B004,transito
 B005,transito
 B006,P010
 B007,P009
-B008,P008
-B009,P007
+B008,transito
+B009,transito
 B010,P006
 B011,P005
 B012,P004

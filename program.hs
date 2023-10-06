@@ -5,6 +5,7 @@ import System.Directory (doesFileExist)
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
 import Data.List (intercalate) 
+import Control.DeepSeq (deepseq)
 {-
 Entradas: un string
 Salidas: El string recibido parseado en las comas
@@ -586,10 +587,8 @@ actualizarUbicacionBicicleta codigoBicicleta ubicacion = do
     contenido <- obtenerContenido ruta
     listaUbicaciones <- return (parsearDocumento contenido)
     let nuevaListaUbicaciones = map (\[bicicleta, oldUbicacion] -> if bicicleta == codigoBicicleta then [bicicleta, ubicacion] else [bicicleta, oldUbicacion]) listaUbicaciones
-    imprimirListaUbicaciones nuevaListaUbicaciones
-    var <- getLine
-    actualizarDocumento ruta nuevaListaUbicaciones
-    putStrLn "Ubicación de la bicicleta actualizada"
+    nuevaListaUbicaciones `deepseq` actualizarDocumento ruta nuevaListaUbicaciones  --'seq' es para forzar a que se realice la actualización del documento y evitar el lazy evaluation
+    putStrLn "\nUbicación de la bicicleta actualizada"
 {-
 Entradas: La cedula del usuario, el codigo de la bicicleta, el codigo del parqueo de salida, el codigo del parqueo de llegada
 Salidas: Crea un nuevo alquiler en el sistema
@@ -607,7 +606,7 @@ alquilarAux cedulaUsuario codigoBici codigParqueoSalida codigoParqueoDestino = d
     imprimirInfoAlquiler nuevoAlquiler
     agregarFilaADocumento rutaAlquileres nuevoAlquiler
     actualizarUbicacionBicicleta codigoBici "transito"  --actualiza en el documento de ubicaciones la ubicacion de la bicicleta alquilada
-    putStrLn "Alquiler generado correctamente"
+    putStrLn "\nAlquiler generado correctamente"
 {-
 Entradas: El usuario debe indicar cedula, codigo de parqueo de salida, codigo de parqueo de llegada
 Salidas: Permite al usuario generar un alquiler y guardarlo en el sistema
